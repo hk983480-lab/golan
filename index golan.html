@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>جولان قلنديا - نظام إدارة الاشتراكات</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#1D9E75;--accent-dark:#0F6E56;--accent-light:#E1F5EE;
+  --bg:#f5f6f8;--surface:#ffffff;--surface2:#f0f2f5;
+  --text:#1a1a1a;--text2:#6b7280;--text3:#9ca3af;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-border:#F09595;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-border:#FAC775;
+  --radius:10px;--radius-sm:7px;
+}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.app{display:flex;min-height:100vh}
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;right:0;height:100vh;z-index:50;box-shadow:2px 0 8px rgba(0,0,0,.06)}
+.logo{padding:22px 18px 18px;border-bottom:1px solid var(--border)}
+.logo-icon{width:42px;height:42px;background:var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;margin-bottom:10px}
+.logo-title{font-size:16px;font-weight:700;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.nav{padding:14px 10px;flex:1}
+.nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:11px 14px;border:none;background:transparent;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;color:var(--text2);text-align:right;transition:all .15s;margin-bottom:4px;font-family:inherit}
+.nav-btn svg{width:18px;height:18px;flex-shrink:0}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--accent-light);color:var(--accent-dark);font-weight:600}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center}
+/* MAIN */
+.main{margin-right:230px;flex:1;padding:28px 26px;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:20px;font-weight:700;color:var(--text)}
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;display:flex;flex-direction:column;gap:6px}
+.stat-card.green{border-top:3px solid var(--accent)}
+.stat-card.red{border-top:3px solid var(--red)}
+.stat-card.blue{border-top:3px solid #2563eb}
+.stat-card.amber{border-top:3px solid #d97706}
+.stat-label{font-size:12px;color:var(--text2);font-weight:500}
+.stat-val{font-size:24px;font-weight:700;color:var(--text)}
+.stat-val.green{color:var(--accent-dark)}
+.stat-val.red{color:var(--red)}
+.stat-val.blue{color:#1d4ed8}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-size:13px;color:var(--text);transition:all .15s;font-family:inherit;font-weight:500;white-space:nowrap}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.btn:hover{background:var(--surface2);border-color:var(--text3)}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent-dark)}
+.btn.primary:hover{background:var(--accent-dark)}
+.btn.danger{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.btn.danger:hover{background:#F7C1C1}
+.btn.warning{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.btn.warning:hover{background:#FAC775}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.sm svg{width:13px;height:13px}
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap svg{position:absolute;top:50%;right:10px;transform:translateY(-50%);color:var(--text3);width:16px;height:16px;pointer-events:none}
+.search-box{width:100%;padding:9px 34px 9px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s}
+.search-box:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.filter-btns{display:flex;gap:4px}
+.filter-btn{padding:7px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--surface);cursor:pointer;font-size:12px;font-family:inherit;color:var(--text2);transition:all .15s;font-weight:500}
+.filter-btn:hover{background:var(--surface2)}
+.filter-btn.active{background:var(--accent-light);color:var(--accent-dark);border-color:#9FE1CB;font-weight:600}
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th{padding:11px 13px;text-align:right;font-weight:600;color:var(--text2);background:var(--surface2);font-size:12px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:1}
+td{padding:11px 13px;text-align:right;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafbfc}
+.chk-col{width:40px;text-align:center!important}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);border-radius:4px}
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+.badge.active{background:#dcfce7;color:#166534}
+.badge.expired{background:var(--red-bg);color:var(--red)}
+.badge.expiring{background:var(--amber-bg);color:var(--amber)}
+/* BULK BAR */
+.bulk-bar{background:linear-gradient(135deg,var(--accent-light),#d1fae5);border:1px solid #9FE1CB;border-radius:var(--radius-sm);padding:11px 16px;display:none;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.bulk-bar.show{display:flex}
+/* SECTION */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:22px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.section-title{font-size:15px;font-weight:700}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);padding:26px;width:480px;max-width:96vw;max-height:94vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:20px;padding-left:30px}
+.close-btn{position:absolute;top:16px;left:16px;width:28px;height:28px;border:none;background:var(--surface2);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .15s}
+.close-btn:hover{background:var(--border);color:var(--text)}
+.close-btn svg{width:14px;height:14px}
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.single{grid-template-columns:1fr}
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-row.full{grid-column:1/-1}
+.form-row label{font-size:12px;font-weight:600;color:var(--text2)}
+.form-row input,.form-row select,.form-row textarea{padding:9px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.form-row textarea{resize:vertical;min-height:70px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+/* RENEW SUMMARY */
+.renew-summary{background:var(--surface2);border-radius:var(--radius-sm);padding:16px;margin-top:4px}
+.renew-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
+.renew-row.total{border-top:1px solid var(--border);padding-top:12px;margin-top:6px;font-weight:700;font-size:15px}
+.renew-targets{background:var(--accent-light);border:1px solid #9FE1CB;border-radius:var(--radius-sm);padding:10px 13px;font-size:13px;color:var(--accent-dark);margin-bottom:16px;line-height:1.6}
+/* DETAILS TABLE */
+.details-table{width:100%;border-collapse:collapse}
+.details-table tr td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+.details-table tr:last-child td{border-bottom:none}
+.details-table td:first-child{color:var(--text2);font-weight:600;width:40%;white-space:nowrap}
+/* DATE FILTER */
+.date-filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.date-filter-row label{font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap}
+.date-filter-row input{padding:8px 11px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit}
+.date-filter-row input:focus{outline:none;border-color:var(--accent)}
+/* EMPTY */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty-state svg{width:48px;height:48px;margin:0 auto 12px;display:block;opacity:.3}
+.empty-state p{font-size:14px}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:#fff;padding:11px 22px;border-radius:30px;font-size:13px;z-index:999;transition:transform .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.report-info{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--text2);margin-bottom:4px}
+/* DELETE MODAL */
+.delete-icon{width:56px;height:56px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.delete-icon svg{width:26px;height:26px;color:var(--red)}
+.delete-title{text-align:center;font-size:17px;font-weight:700;margin-bottom:8px}
+.delete-subtitle{text-align:center;font-size:13px;color:var(--text2);margin-bottom:6px;line-height:1.5}
+.delete-name{text-align:center;font-size:14px;font-weight:700;color:var(--red);background:var(--red-bg);padding:8px 16px;border-radius:var(--radius-sm);margin:0 auto 20px;display:inline-block;width:100%}
+@media(max-width:768px){
+  .sidebar{width:200px}
+  .main{margin-right:200px;padding:16px}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .sidebar{transform:translateX(100%);transition:transform .3s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-right:0;padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🌐</div>
+      <div class="logo-title">جولان قلنديا</div>
+      <div class="logo-sub">نظام إدارة الاشتراكات</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="showPage('dashboard',this)">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        لوحة التحكم
+      </button>
+      <button class="nav-btn" onclick="showPage('subs',this)">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg>
+        اشتراكات جولان
+      </button>
+    </nav>
+    <div class="sidebar-footer">جولان قلنديا © 2025</div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h1 class="page-title">لوحة التحكم</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="openExpiredReportModal()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            تقرير المنتهية PDF
+          </button>
+          <button class="btn primary" onclick="openSalesReportModal()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            تقرير المبيعات PDF
+          </button>
+        </div>
+      </div>
+      <div class="cards-grid" id="stat-cards"></div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">الاشتراكات المنتهية</span>
+          <button class="btn sm" onclick="showPage('subs',document.querySelectorAll('.nav-btn')[1]);setFilter('expired')">عرض الكل</button>
+        </div>
+        <div id="expired-table-dash"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">سجل المبيعات اليومي</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn sm danger" onclick="confirmAction('reset-daily')" id="reset-daily-btn">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              تصفير اليومي
+            </button>
+            <button class="btn sm danger" onclick="confirmAction('clear-sales')" id="clear-sales-btn">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              حذف سجل المبيعات
+            </button>
+          </div>
+        </div>
+        <div id="sales-table-dash"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title" style="color:var(--red)">🗑️ الاشتراكات المحذوفة</span>
+          <button class="btn sm danger" onclick="clearDeleted()" id="clear-deleted-btn" style="display:none">مسح السجل</button>
+        </div>
+        <div id="deleted-table-dash"></div>
+      </div>
+    </div>
+
+    <!-- SUBSCRIPTIONS PAGE -->
+    <div class="page" id="page-subs">
+      <div class="page-header">
+        <h1 class="page-title">اشتراكات جولان</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn primary" onclick="openAddModal()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            إضافة اشتراك
+          </button>
+          <button class="btn" id="restore-btn" onclick="restoreAllSubs()" style="display:none;background:#FAEEDA;color:#854F0B;border-color:#FAC775;font-weight:600">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            استرجاع الاشتراكات
+          </button>
+          <button class="btn danger" onclick="confirmAction('delete-all-subs')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            حذف كل الاشتراكات
+          </button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-box" id="search-input" placeholder="بحث بالاسم أو الرقم أو الملف..." oninput="renderSubs()">
+        </div>
+        <div class="filter-btns">
+          <button class="filter-btn active" id="fb-all" onclick="setFilter('all')">الكل</button>
+          <button class="filter-btn" id="fb-active" onclick="setFilter('active')">الفعالة</button>
+          <button class="filter-btn" id="fb-expired" onclick="setFilter('expired')">المنتهية</button>
+        </div>
+      </div>
+      <div class="bulk-bar" id="bulk-bar">
+        <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--accent-dark)"></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn sm primary" onclick="openBulkRenewModal()">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            تجديد المحددة
+          </button>
+          <button class="btn sm danger" onclick="clearSelection()">إلغاء التحديد</button>
+        </div>
+      </div>
+      <div class="table-wrap" id="subs-table"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('add-modal')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="modal-title" id="modal-title">إضافة اشتراك جديد</div>
+    <div class="form-grid">
+      <div class="form-row full"><label>اسم المشترك *</label><input id="f-name" placeholder="الاسم الكامل"></div>
+      <div class="form-row"><label>رقم الخط *</label><input id="f-number" placeholder="05X-XXXXXXX"></div>
+      <div class="form-row"><label>رقم الملف</label><input id="f-file" placeholder="FILE-001"></div>
+      <div class="form-row"><label>التكلفة (₪)</label><input id="f-cost" type="number" value="35" min="0"></div>
+      <div class="form-row"><label>المبلغ (₪)</label><input id="f-price" type="number" value="50" min="0"></div>
+      <div class="form-row"><label>تاريخ الاشتراك</label><input id="f-start" type="date" onchange="autoEndDate()"></div>
+      <div class="form-row"><label>تاريخ الانتهاء</label><input id="f-end" type="date"></div>
+      <div class="form-row full"><label>ملاحظات</label><textarea id="f-notes" placeholder="أي ملاحظات إضافية..."></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('add-modal')">إلغاء</button>
+      <button class="btn primary" onclick="saveSubscription()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+        حفظ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RENEW MODAL -->
+<div class="modal-bg" id="renew-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('renew-modal')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="modal-title">تجديد الاشتراك</div>
+    <div class="renew-targets" id="renew-targets"></div>
+    <div class="form-grid">
+      <div class="form-row full">
+        <label>عدد الأشهر</label>
+        <select id="renew-months" onchange="calcRenew()">
+          <option value="1">شهر واحد</option>
+          <option value="2">شهران</option>
+          <option value="3">3 أشهر</option>
+          <option value="4">4 أشهر</option>
+          <option value="6">6 أشهر</option>
+          <option value="12">12 شهر (سنة)</option>
+          <option value="custom">مخصص...</option>
+        </select>
+      </div>
+      <div class="form-row full" id="renew-custom-row" style="display:none">
+        <label>أدخل عدد الأشهر</label>
+        <input id="renew-custom-months" type="number" min="1" max="120" placeholder="مثال: 5" oninput="calcRenew()">
+      </div>
+      <div class="form-row"><label>التكلفة / شهر (₪)</label><input id="r-cost" type="number" value="35" oninput="calcRenew()"></div>
+      <div class="form-row"><label>المبلغ / شهر (₪)</label><input id="r-price" type="number" value="50" oninput="calcRenew()"></div>
+    </div>
+    <div class="renew-summary">
+      <div class="renew-row"><span style="color:var(--text2)">عدد الأرقام:</span><span id="r-count" style="font-weight:600">1</span></div>
+      <div class="renew-row"><span style="color:var(--text2)">عدد الأشهر:</span><span id="r-months-show">1</span></div>
+      <div class="renew-row"><span style="color:var(--text2)">إجمالي التكلفة:</span><span id="r-total-cost">35 ₪</span></div>
+      <div class="renew-row total"><span>إجمالي المبلغ:</span><span id="r-total-price" style="color:var(--accent-dark)">50 ₪</span></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('renew-modal')">إلغاء</button>
+      <button class="btn primary" onclick="confirmRenew()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        تجديد الآن
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal-bg" id="details-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('details-modal')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="modal-title">تفاصيل الاشتراك</div>
+    <div id="details-content"></div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('details-modal')">إغلاق</button>
+      <button class="btn primary" id="details-edit-btn">تعديل</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPIRED REPORT MODAL -->
+<div class="modal-bg" id="report-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('report-modal')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="modal-title">تقرير الاشتراكات المنتهية</div>
+    <div class="date-filter-row">
+      <label>من:</label><input type="date" id="rep-from" onchange="updateRepPreview()">
+      <label>إلى:</label><input type="date" id="rep-to" onchange="updateRepPreview()">
+    </div>
+    <div class="report-info" id="rep-preview">اختر نطاق التاريخ لمعاينة التقرير</div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('report-modal')">إلغاء</button>
+      <button class="btn primary" onclick="generatePDF('expired')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        تنزيل PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SALES REPORT MODAL -->
+<div class="modal-bg" id="sales-report-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal('sales-report-modal')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+    <div class="modal-title">تقرير المبيعات</div>
+    <div class="date-filter-row">
+      <label>من:</label><input type="date" id="srep-from" onchange="updateSalesRepPreview()">
+      <label>إلى:</label><input type="date" id="srep-to" onchange="updateSalesRepPreview()">
+    </div>
+    <div class="report-info" id="srep-preview">اختر نطاق التاريخ لمعاينة التقرير</div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal('sales-report-modal')">إلغاء</button>
+      <button class="btn primary" onclick="generatePDF('sales')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        تنزيل PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION CONFIRM MODAL -->
+<div class="modal-bg" id="action-modal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div class="delete-icon" id="action-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+    </div>
+    <div class="delete-title" id="action-title">تأكيد العملية</div>
+    <div class="delete-subtitle" id="action-subtitle">هل أنت متأكد؟</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
+      <button class="btn" style="min-width:100px" onclick="closeModal('action-modal')">إلغاء</button>
+      <button class="btn danger" style="min-width:100px;font-weight:600" id="action-confirm-btn">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-bg" id="delete-modal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <div class="delete-icon">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </div>
+    <div class="delete-title">تأكيد الحذف</div>
+    <div class="delete-subtitle">هل أنت متأكد من حذف هذا الاشتراك؟<br>لا يمكن التراجع عن هذا الإجراء.</div>
+    <div class="delete-name" id="delete-name"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn" style="min-width:100px" onclick="closeModal('delete-modal')">إلغاء</button>
+      <button class="btn danger" style="min-width:100px;font-weight:600" id="delete-confirm-btn">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        نعم، احذف
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==============================
+// DATA
+// ==============================
+let subs = JSON.parse(localStorage.getItem('golan_subs') || '[]');
+let sales = JSON.parse(localStorage.getItem('golan_sales') || '[]');
+let deleted = JSON.parse(localStorage.getItem('golan_deleted') || '[]');
+let editId = null;
+let renewIds = [];
+let filterMode = 'all';
+let lastDeletedSnapshot = null;
+
+function saveData() {
+  localStorage.setItem('golan_subs', JSON.stringify(subs));
+  localStorage.setItem('golan_sales', JSON.stringify(sales));
+  localStorage.setItem('golan_deleted', JSON.stringify(deleted));
+}
+
+// ==============================
+// HELPERS
+// ==============================
+function today() { return new Date().toISOString().split('T')[0]; }
+function nowTime() { return new Date().toLocaleTimeString('ar', {hour12: false, hour:'2-digit', minute:'2-digit'}); }
+function nowDateTime() { return new Date().toLocaleString('ar-EG', {hour12:false}); }
+
+function addMonths(dateStr, n) {
+  let d = new Date(dateStr);
+  d.setMonth(d.getMonth() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function daysDiff(a, b) {
+  return Math.round((new Date(a) - new Date(b)) / (1000 * 86400));
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  let p = d.split('-');
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+
+function uid() { return 's' + Date.now() + Math.random().toString(36).slice(2,6); }
+
+function subStatus(s) {
+  let t = today();
+  if (s.end < t) return 'expired';
+  if (daysDiff(s.end, t) <= 7) return 'expiring';
+  return 'active';
+}
+
+function statusLabel(st) {
+  if (st === 'active') return '<span class="badge active">فعال</span>';
+  if (st === 'expiring') return '<span class="badge expiring">ينتهي قريباً</span>';
+  return '<span class="badge expired">منتهي</span>';
+}
+
+function daysText(s) {
+  let st = subStatus(s);
+  let diff = daysDiff(s.end, today());
+  if (st === 'expired') return `<span style="color:var(--red);font-weight:600">تأخر ${Math.abs(diff)} يوم</span>`;
+  if (st === 'expiring') return `<span style="color:var(--amber);font-weight:600">${diff} يوم</span>`;
+  return `<span style="color:var(--accent-dark)">${diff} يوم</span>`;
+}
+
+function toast(msg, duration=2500) {
+  let t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ==============================
+// NAVIGATION
+// ==============================
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'subs') renderSubs();
+}
+
+// ==============================
+// DASHBOARD
+// ==============================
+function renderDashboard() {
+  let t = today();
+  let activeSubs = subs.filter(s => subStatus(s) !== 'expired');
+  let expiredSubs = subs.filter(s => subStatus(s) === 'expired');
+  let todaySales = sales.filter(s => s.date === t);
+  let dailyRevenue = todaySales.reduce((a, s) => a + s.price, 0);
+  let dailyCost = todaySales.reduce((a, s) => a + s.cost, 0);
+  let dailyProfit = dailyRevenue - dailyCost;
+
+  document.getElementById('stat-cards').innerHTML = `
+    <div class="stat-card blue">
+      <div class="stat-label">إجمالي الاشتراكات</div>
+      <div class="stat-val blue">${subs.length}</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">الاشتراكات الفعالة</div>
+      <div class="stat-val green">${activeSubs.length}</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">الاشتراكات المنتهية</div>
+      <div class="stat-val red">${expiredSubs.length}</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">المبيعات اليومية</div>
+      <div class="stat-val green">${dailyRevenue} ₪</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">التكلفة اليومية</div>
+      <div class="stat-val red">${dailyCost} ₪</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">الربح اليومي</div>
+      <div class="stat-val" style="color:var(--amber)">${dailyProfit} ₪</div>
+    </div>
+  `;
+
+  // Expired table
+  let expD = document.getElementById('expired-table-dash');
+  if (!expiredSubs.length) {
+    expD.innerHTML = `<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p>لا توجد اشتراكات منتهية 🎉</p></div>`;
+  } else {
+    let rows = expiredSubs.slice(0, 12).map(s => `
+      <tr>
+        <td style="font-weight:600">${s.name}</td>
+        <td>${s.number}</td>
+        <td>${s.file || '-'}</td>
+        <td>${fmtDate(s.start)}</td>
+        <td>${fmtDate(s.end)}</td>
+        <td style="color:var(--red);font-weight:600">${Math.abs(daysDiff(today(), s.end))} يوم</td>
+        <td>${s.price} ₪</td>
+      </tr>`).join('');
+    expD.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>الاسم</th><th>الرقم</th><th>الملف</th><th>بداية</th><th>انتهاء</th><th>أيام التأخير</th><th>المبلغ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    ${expiredSubs.length > 12 ? `<p style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center">و ${expiredSubs.length - 12} اشتراك آخر...</p>` : ''}`;
+  }
+
+  // Sales table
+  let salesD = document.getElementById('sales-table-dash');
+  let allSales = sales.slice().reverse().slice(0, 20);
+  if (!allSales.length) {
+    salesD.innerHTML = `<div class="empty-state"><p>لا توجد مبيعات مسجلة بعد</p></div>`;
+  } else {
+    let srows = allSales.map(s => `
+      <tr>
+        <td style="font-weight:600">${s.name}</td>
+        <td>${s.number}</td>
+        <td>${fmtDate(s.date)}</td>
+        <td>${s.time || '-'}</td>
+        <td>${s.type === 'renew' ? `تجديد${s.months ? ' ' + s.months + ' شهر' : ''}` : 'جديد'}</td>
+        <td style="color:var(--accent-dark);font-weight:600">${s.price} ₪</td>
+        <td style="color:var(--red)">${s.cost} ₪</td>
+        <td style="color:var(--amber);font-weight:600">${s.price - s.cost} ₪</td>
+      </tr>`).join('');
+    salesD.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr><th>الاسم</th><th>الرقم</th><th>التاريخ</th><th>الوقت</th><th>النوع</th><th>المبلغ</th><th>التكلفة</th><th>الربح</th></tr></thead>
+      <tbody>${srows}</tbody>
+    </table></div>`;
+  }
+
+  // Deleted table
+  let delD = document.getElementById('deleted-table-dash');
+  let clearBtn = document.getElementById('clear-deleted-btn');
+  if (!deleted.length) {
+    if(clearBtn) clearBtn.style.display = 'none';
+    delD.innerHTML = `<div class="empty-state"><p style="color:var(--text3)">لا توجد اشتراكات محذوفة</p></div>`;
+  } else {
+    if(clearBtn) clearBtn.style.display = '';
+    let drows = deleted.map(s => `
+      <tr>
+        <td style="font-weight:600;color:var(--red)">${s.name}</td>
+        <td style="font-family:monospace">${s.number}</td>
+        <td>${s.file || '-'}</td>
+        <td>${fmtDate(s.start)}</td>
+        <td>${fmtDate(s.end)}</td>
+        <td>${s.price} ₪</td>
+        <td>${s.cost} ₪</td>
+        <td style="color:var(--red);font-size:12px">${fmtDate(s.deletedDate)} ${s.deletedTime || ''}</td>
+      </tr>`).join('');
+    delD.innerHTML = `<div class="table-wrap"><table>
+      <thead><tr>
+        <th>الاسم</th><th>الرقم</th><th>الملف</th><th>بداية</th><th>انتهاء</th>
+        <th>المبلغ</th><th>التكلفة</th><th>تاريخ الحذف</th>
+      </tr></thead>
+      <tbody>${drows}</tbody>
+    </table></div>`;
+  }
+}
+
+function confirmAction(type) {
+  let titles = {
+    'reset-daily': 'تصفير المبيعات اليومية',
+    'clear-sales': 'حذف سجل المبيعات الكامل',
+    'delete-all-subs': 'حذف كل الاشتراكات'
+  };
+  let subtitles = {
+    'reset-daily': 'سيتم تصفير مبيعات اليوم فقط (المبلغ والتكلفة والربح).<br>لا يمكن التراجع عن هذا الإجراء.',
+    'clear-sales': 'سيتم حذف كامل سجل المبيعات نهائياً.<br>لا يمكن التراجع عن هذا الإجراء.',
+    'delete-all-subs': `سيتم حذف <strong>${'${subs.length}'} اشتراك</strong> بشكل نهائي.<br>يمكنك استرجاعها فوراً بزر الاسترجاع.`
+  };
+  // For delete-all-subs update count dynamically
+  let subCount = subs.length;
+  document.getElementById('action-title').textContent = titles[type];
+  if (type === 'delete-all-subs') {
+    document.getElementById('action-subtitle').innerHTML = `سيتم حذف <strong>${subCount} اشتراك</strong> بشكل مؤقت.<br>يمكنك استرجاعها فوراً بزر الاسترجاع.`;
+  } else {
+    document.getElementById('action-subtitle').innerHTML = subtitles[type];
+  }
+  document.getElementById('action-confirm-btn').onclick = function() {
+    closeModal('action-modal');
+    if (type === 'reset-daily') resetDailySales();
+    if (type === 'clear-sales') clearAllSales();
+    if (type === 'delete-all-subs') deleteAllSubs();
+  };
+  document.getElementById('action-modal').classList.add('open');
+}
+
+function resetDailySales() {
+  let t = today();
+  sales = sales.filter(s => s.date !== t);
+  saveData();
+  renderDashboard();
+  toast('✅ تم تصفير مبيعات اليوم');
+}
+
+function clearAllSales() {
+  sales = [];
+  saveData();
+  renderDashboard();
+  toast('✅ تم حذف كامل سجل المبيعات');
+}
+
+function deleteAllSubs() {
+  if (!subs.length) { toast('لا توجد اشتراكات للحذف'); return; }
+  // Save snapshot for restore
+  lastDeletedSnapshot = JSON.parse(JSON.stringify(subs));
+  localStorage.setItem('golan_snapshot', JSON.stringify(lastDeletedSnapshot));
+  // Move all to deleted log
+  let t = today();
+  let time = nowTime();
+  subs.forEach(s => {
+    deleted.unshift({ ...s, deletedDate: t, deletedTime: time });
+  });
+  subs = [];
+  saveData();
+  // Show restore button
+  let btn = document.getElementById('restore-btn');
+  if (btn) btn.style.display = '';
+  renderSubs();
+  renderDashboard();
+  toast('🗑️ تم حذف كل الاشتراكات — يمكنك الاسترجاع');
+}
+
+function restoreAllSubs() {
+  let snapshot = lastDeletedSnapshot || JSON.parse(localStorage.getItem('golan_snapshot') || 'null');
+  if (!snapshot || !snapshot.length) { toast('لا يوجد شيء للاسترجاع'); return; }
+  // Remove restored entries from deleted log
+  let restoredIds = new Set(snapshot.map(s => s.id));
+  deleted = deleted.filter(d => !restoredIds.has(d.id));
+  subs = snapshot;
+  lastDeletedSnapshot = null;
+  localStorage.removeItem('golan_snapshot');
+  saveData();
+  let btn = document.getElementById('restore-btn');
+  if (btn) btn.style.display = 'none';
+  renderSubs();
+  renderDashboard();
+  toast('✅ تم استرجاع كل الاشتراكات بنجاح');
+}
+
+function clearDeleted() {
+  deleted = [];
+  saveData();
+  renderDashboard();
+  toast('✅ تم مسح سجل المحذوفات');
+}
+
+// ==============================
+// SUBSCRIPTIONS
+// ==============================
+function setFilter(mode) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fb-' + mode).classList.add('active');
+  renderSubs();
+}
+
+function renderSubs() {
+  let q = (document.getElementById('search-input') || {}).value || '';
+  let list = subs.filter(s => {
+    let pass = true;
+    if (filterMode === 'active') pass = subStatus(s) !== 'expired';
+    if (filterMode === 'expired') pass = subStatus(s) === 'expired';
+    if (q) {
+      let ql = q.toLowerCase();
+      pass = pass && (
+        s.name.toLowerCase().includes(ql) ||
+        s.number.toLowerCase().includes(ql) ||
+        (s.file || '').toLowerCase().includes(ql) ||
+        (s.notes || '').toLowerCase().includes(ql)
+      );
+    }
+    return pass;
+  });
+
+  let checked = subs.filter(s => s._checked);
+  let bulkBar = document.getElementById('bulk-bar');
+  if (checked.length > 0) {
+    bulkBar.classList.add('show');
+    document.getElementById('bulk-count').textContent = `${checked.length} رقم محدد للتجديد`;
+  } else {
+    bulkBar.classList.remove('show');
+  }
+
+  let tableEl = document.getElementById('subs-table');
+  if (!list.length) {
+    tableEl.innerHTML = `<div class="empty-state" style="padding:48px 20px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>لا توجد نتائج مطابقة</p></div>`;
+    return;
+  }
+
+  let rows = list.map((s, idx) => {
+    let st = subStatus(s);
+    let rowNum = subs.indexOf(s) + 1;
+    return `<tr>
+      <td class="chk-col"><input type="checkbox" ${s._checked ? 'checked' : ''} onchange="toggleCheck('${s.id}',this.checked)"></td>
+      <td style="font-size:11px;color:var(--text3);font-weight:600;text-align:center;min-width:32px">${rowNum}</td>
+      <td style="font-weight:600;min-width:120px">${s.name}</td>
+      <td style="font-family:monospace;min-width:120px">${s.number}</td>
+      <td>${s.file || '-'}</td>
+      <td>${statusLabel(st)}</td>
+      <td style="min-width:100px">${daysText(s)}</td>
+      <td>${fmtDate(s.start)}</td>
+      <td>${fmtDate(s.end)}</td>
+      <td style="font-weight:600;color:var(--accent-dark)">${s.price} ₪</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;min-width:190px">
+          <button class="btn sm" onclick="openDetails('${s.id}')" title="تفاصيل">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+            تفاصيل
+          </button>
+          <button class="btn sm" onclick="openEdit('${s.id}')" title="تعديل">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            تعديل
+          </button>
+          <button class="btn sm warning" onclick="openRenew('${s.id}')" title="تجديد">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            تجديد
+          </button>
+          <button class="btn sm danger" onclick="deleteSub('${s.id}')" title="حذف">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            حذف
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  let allVisible = list.every(s => s._checked);
+  tableEl.innerHTML = `<table>
+    <thead><tr>
+      <th class="chk-col"><input type="checkbox" ${allVisible && list.length > 0 ? 'checked' : ''} onchange="selectAllVisible(this.checked,${JSON.stringify(list.map(s=>s.id))})" title="تحديد الكل"></th>
+      <th style="width:36px;text-align:center">#</th>
+      <th>الاسم</th><th>الرقم</th><th>الملف</th><th>الحالة</th>
+      <th>الأيام</th><th>بداية</th><th>انتهاء</th><th>المبلغ</th><th>الإجراءات</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function toggleCheck(id, val) {
+  let s = subs.find(s => s.id === id);
+  if (s) s._checked = val;
+  saveData(); renderSubs();
+}
+
+function selectAllVisible(val, ids) {
+  subs.forEach(s => { if (ids.includes(s.id)) s._checked = val; });
+  saveData(); renderSubs();
+}
+
+function clearSelection() {
+  subs.forEach(s => s._checked = false);
+  saveData(); renderSubs();
+}
+
+// ==============================
+// ADD / EDIT
+// ==============================
+function openAddModal() {
+  editId = null;
+  document.getElementById('modal-title').textContent = 'إضافة اشتراك جديد';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-number').value = '';
+  document.getElementById('f-file').value = '';
+  document.getElementById('f-cost').value = 35;
+  document.getElementById('f-price').value = 50;
+  document.getElementById('f-start').value = today();
+  document.getElementById('f-end').value = addMonths(today(), 1);
+  document.getElementById('f-notes').value = '';
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 100);
+}
+
+function openEdit(id) {
+  let s = subs.find(s => s.id === id);
+  if (!s) return;
+  editId = id;
+  document.getElementById('modal-title').textContent = 'تعديل الاشتراك';
+  document.getElementById('f-name').value = s.name;
+  document.getElementById('f-number').value = s.number;
+  document.getElementById('f-file').value = s.file || '';
+  document.getElementById('f-cost').value = s.cost;
+  document.getElementById('f-price').value = s.price;
+  document.getElementById('f-start').value = s.start;
+  document.getElementById('f-end').value = s.end;
+  document.getElementById('f-notes').value = s.notes || '';
+  closeModal('details-modal');
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function autoEndDate() {
+  let start = document.getElementById('f-start').value;
+  if (start) document.getElementById('f-end').value = addMonths(start, 1);
+}
+
+function saveSubscription() {
+  let name = document.getElementById('f-name').value.trim();
+  let number = document.getElementById('f-number').value.trim();
+  if (!name || !number) { toast('⚠️ الاسم والرقم مطلوبان'); return; }
+  let cost = +document.getElementById('f-cost').value || 35;
+  let price = +document.getElementById('f-price').value || 50;
+  let start = document.getElementById('f-start').value || today();
+  let end = document.getElementById('f-end').value || addMonths(start, 1);
+  let notes = document.getElementById('f-notes').value.trim();
+  let file = document.getElementById('f-file').value.trim();
+
+  if (editId) {
+    let s = subs.find(s => s.id === editId);
+    Object.assign(s, { name, number, file, cost, price, start, end, notes });
+    toast('✅ تم تحديث الاشتراك بنجاح');
+  } else {
+    let id = uid();
+    subs.unshift({ id, name, number, file, cost, price, start, end, notes, createdDate: today(), createdTime: nowTime(), _checked: false });
+    sales.push({ id: uid(), subId: id, name, number, date: today(), time: nowTime(), price, cost, type: 'new' });
+    toast('✅ تم إضافة الاشتراك بنجاح');
+  }
+  saveData();
+  closeModal('add-modal');
+  renderSubs();
+  renderDashboard();
+}
+
+function deleteSub(id) {
+  let s = subs.find(s => s.id === id);
+  if (!s) return;
+  document.getElementById('delete-name').textContent = s.name + ' — ' + s.number;
+  document.getElementById('delete-confirm-btn').onclick = function() {
+    // Save to deleted log
+    deleted.unshift({
+      ...s,
+      deletedDate: today(),
+      deletedTime: nowTime()
+    });
+    // Remove from sales
+    sales = sales.filter(x => x.subId !== id);
+    // Remove from subs
+    subs = subs.filter(x => x.id !== id);
+    saveData();
+    closeModal('delete-modal');
+    renderSubs();
+    renderDashboard();
+    toast('🗑️ تم حذف الاشتراك بنجاح');
+  };
+  document.getElementById('delete-modal').classList.add('open');
+}
+
+// ==============================
+// DETAILS
+// ==============================
+function openDetails(id) {
+  let s = subs.find(s => s.id === id);
+  if (!s) return;
+  let st = subStatus(s);
+  let diff = daysDiff(s.end, today());
+  let stText = st === 'active' ? 'فعال' : st === 'expiring' ? 'ينتهي قريباً' : 'منتهي';
+  let daysInfo = st === 'expired'
+    ? `<span style="color:var(--red);font-weight:600">تأخر ${Math.abs(diff)} يوم</span>`
+    : `<span style="color:var(--accent-dark);font-weight:600">متبقي ${diff} يوم</span>`;
+
+  let stBg = st==='active' ? 'background:#dcfce7;color:#166534' : st==='expiring' ? 'background:var(--amber-bg);color:var(--amber)' : 'background:var(--red-bg);color:var(--red)';
+  let stLabel = st==='active' ? 'فعال ✓' : st==='expiring' ? 'ينتهي قريباً ⚠️' : 'منتهي ✗';
+  document.getElementById('details-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="border-radius:var(--radius-sm);padding:12px 10px;text-align:center;${stBg}">
+        <div style="font-size:11px;margin-bottom:3px;opacity:.8">الحالة</div>
+        <div style="font-size:15px;font-weight:700">${stLabel}</div>
+      </div>
+      <div style="border-radius:var(--radius-sm);padding:12px 10px;text-align:center;background:#E1F5EE;color:#0F6E56">
+        <div style="font-size:11px;margin-bottom:3px;opacity:.8">المبلغ</div>
+        <div style="font-size:18px;font-weight:700">${s.price} ₪</div>
+      </div>
+      <div style="border-radius:var(--radius-sm);padding:12px 10px;text-align:center;background:var(--red-bg);color:var(--red)">
+        <div style="font-size:11px;margin-bottom:3px;opacity:.8">التكلفة</div>
+        <div style="font-size:18px;font-weight:700">${s.cost} ₪</div>
+      </div>
+    </div>
+    <div style="background:var(--amber-bg);border-radius:var(--radius-sm);padding:10px 14px;text-align:center;margin-bottom:16px;color:var(--amber)">
+      <span style="font-size:12px;opacity:.8">صافي الربح: </span>
+      <span style="font-size:17px;font-weight:700">${s.price - s.cost} ₪</span>
+      &nbsp;|&nbsp;
+      <span style="font-size:12px;opacity:.8">الأيام: </span>
+      <span style="font-size:14px;font-weight:700">${daysInfo}</span>
+    </div>
+    <table class="details-table">
+      <tr><td>الاسم</td><td style="font-weight:700">${s.name}</td></tr>
+      <tr><td>رقم الخط</td><td style="font-family:monospace;font-weight:600">${s.number}</td></tr>
+      <tr><td>رقم الملف</td><td>${s.file || '-'}</td></tr>
+      <tr><td>تاريخ البداية</td><td>${fmtDate(s.start)}</td></tr>
+      <tr><td>تاريخ الانتهاء</td><td>${fmtDate(s.end)}</td></tr>
+      <tr><td>تاريخ التسجيل</td><td style="font-size:12px">${s.createdDate ? fmtDate(s.createdDate) + ' ' + (s.createdTime||'') : '-'}</td></tr>
+      ${s.notes ? `<tr><td>ملاحظات</td><td>${s.notes}</td></tr>` : ''}
+    </table>`;
+
+  document.getElementById('details-edit-btn').onclick = () => openEdit(id);
+  document.getElementById('details-modal').classList.add('open');
+}
+
+// ==============================
+// RENEW
+// ==============================
+function openRenew(id) {
+  renewIds = [id];
+  startRenewModal();
+}
+
+function openBulkRenewModal() {
+  renewIds = subs.filter(s => s._checked).map(s => s.id);
+  if (!renewIds.length) { toast('اختر رقماً واحداً على الأقل'); return; }
+  startRenewModal();
+}
+
+function startRenewModal() {
+  document.getElementById('renew-months').value = 1;
+  document.getElementById('r-cost').value = 35;
+  document.getElementById('r-price').value = 50;
+  let names = renewIds.map(id => {
+    let s = subs.find(s => s.id === id);
+    return s ? `${s.name} (${s.number})` : '';
+  }).filter(Boolean).join(' | ');
+  document.getElementById('renew-targets').innerHTML = `<strong>التجديد لـ:</strong><br>${names}`;
+  document.getElementById('r-count').textContent = renewIds.length;
+  calcRenew();
+  document.getElementById('renew-modal').classList.add('open');
+}
+
+function calcRenew() {
+  let sel = document.getElementById('renew-months').value;
+  let customRow = document.getElementById('renew-custom-row');
+  if (sel === 'custom') {
+    customRow.style.display = '';
+    setTimeout(() => document.getElementById('renew-custom-months').focus(), 50);
+  } else {
+    customRow.style.display = 'none';
+  }
+  let m = sel === 'custom' ? (+document.getElementById('renew-custom-months').value || 1) : +sel;
+  let cp = +document.getElementById('r-cost').value || 35;
+  let pp = +document.getElementById('r-price').value || 50;
+  let n = renewIds.length;
+  document.getElementById('r-months-show').textContent = m;
+  document.getElementById('r-total-cost').textContent = (m * cp * n) + ' ₪';
+  document.getElementById('r-total-price').textContent = (m * pp * n) + ' ₪';
+}
+
+function confirmRenew() {
+  let sel = document.getElementById('renew-months').value;
+  let m = sel === 'custom' ? (+document.getElementById('renew-custom-months').value || 1) : +sel;
+  let cp = +document.getElementById('r-cost').value || 35;
+  let pp = +document.getElementById('r-price').value || 50;
+
+  renewIds.forEach(id => {
+    let s = subs.find(s => s.id === id);
+    if (!s) return;
+    let base = subStatus(s) === 'expired' ? today() : s.end;
+    s.end = addMonths(base, m);
+    s.cost = cp; s.price = pp; s._checked = false;
+    sales.push({ id: uid(), subId: id, name: s.name, number: s.number, date: today(), time: nowTime(), price: pp * m, cost: cp * m, type: 'renew', months: m });
+  });
+
+  saveData();
+  closeModal('renew-modal');
+  renderSubs(); renderDashboard();
+  toast(`✅ تم تجديد ${renewIds.length} اشتراك بنجاح`);
+}
+
+// ==============================
+// REPORTS
+// ==============================
+function openExpiredReportModal() {
+  let d = new Date(); let m = ('0' + (d.getMonth() + 1)).slice(-2);
+  document.getElementById('rep-from').value = d.getFullYear() + '-' + m + '-01';
+  document.getElementById('rep-to').value = today();
+  updateRepPreview();
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function updateRepPreview() {
+  let from = document.getElementById('rep-from').value;
+  let to = document.getElementById('rep-to').value;
+  if (!from || !to) return;
+  let list = subs.filter(s => subStatus(s) === 'expired' && s.end >= from && s.end <= to);
+  let total = list.reduce((a, s) => a + s.price, 0);
+  document.getElementById('rep-preview').textContent = `سيتضمن التقرير: ${list.length} اشتراك منتهي | إجمالي: ${total} ₪`;
+}
+
+function openSalesReportModal() {
+  let d = new Date(); let m = ('0' + (d.getMonth() + 1)).slice(-2);
+  document.getElementById('srep-from').value = d.getFullYear() + '-' + m + '-01';
+  document.getElementById('srep-to').value = today();
+  updateSalesRepPreview();
+  document.getElementById('sales-report-modal').classList.add('open');
+}
+
+function updateSalesRepPreview() {
+  let from = document.getElementById('srep-from').value;
+  let to = document.getElementById('srep-to').value;
+  if (!from || !to) return;
+  let list = sales.filter(s => s.date >= from && s.date <= to);
+  let totalRev = list.reduce((a, s) => a + s.price, 0);
+  let totalCost = list.reduce((a, s) => a + s.cost, 0);
+  document.getElementById('srep-preview').textContent = `${list.length} عملية | مبيعات: ${totalRev} ₪ | تكلفة: ${totalCost} ₪ | ربح: ${totalRev - totalCost} ₪`;
+}
+
+// ==============================
+// PDF GENERATION
+// ==============================
+function generatePDF(type) {
+  // Build HTML content for print
+  let printWin = window.open('', '_blank', 'width=900,height=700');
+  let html = '';
+
+  if (type === 'expired') {
+    let from = document.getElementById('rep-from').value;
+    let to = document.getElementById('rep-to').value;
+    let list = subs.filter(s => subStatus(s) === 'expired' && s.end >= from && s.end <= to);
+    let totalRev = list.reduce((a, s) => a + s.price, 0);
+    let totalCost = list.reduce((a, s) => a + s.cost, 0);
+
+    let rows = list.map((s, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${s.name}</td>
+        <td>${s.number}</td>
+        <td>${s.file || '-'}</td>
+        <td>${fmtDate(s.start)}</td>
+        <td>${fmtDate(s.end)}</td>
+        <td>${Math.abs(daysDiff(today(), s.end))} يوم</td>
+        <td>${s.price} ₪</td>
+        <td>${s.cost} ₪</td>
+        <td>${s.price - s.cost} ₪</td>
+      </tr>`).join('');
+
+    html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
+    <title>تقرير الاشتراكات المنتهية</title>
+    <style>
+      body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;margin:24px;color:#1a1a1a;font-size:13px}
+      h1{font-size:20px;font-weight:700;color:#0F6E56;margin-bottom:4px}
+      .sub{color:#6b7280;font-size:12px;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse;margin-top:12px}
+      th{background:#0F6E56;color:#fff;padding:9px 10px;text-align:right;font-size:12px}
+      td{padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right}
+      tr:nth-child(even) td{background:#f0fdf8}
+      tfoot td{background:#e1f5ee;font-weight:700;border-top:2px solid #0F6E56}
+      .summary{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+      .sum-card{background:#f0fdf8;border:1px solid #9FE1CB;border-radius:8px;padding:12px 16px;min-width:140px}
+      .sum-label{font-size:11px;color:#6b7280}
+      .sum-val{font-size:18px;font-weight:700;color:#0F6E56}
+      @media print{body{margin:10px}.no-print{display:none}}
+    </style></head><body>
+    <h1>🌐 جولان قلنديا - تقرير الاشتراكات المنتهية</h1>
+    <div class="sub">من: ${fmtDate(from)} | إلى: ${fmtDate(to)} | تاريخ التقرير: ${fmtDate(today())}</div>
+    <div class="summary">
+      <div class="sum-card"><div class="sum-label">عدد الاشتراكات</div><div class="sum-val">${list.length}</div></div>
+      <div class="sum-card"><div class="sum-label">إجمالي المبالغ</div><div class="sum-val">${totalRev} ₪</div></div>
+      <div class="sum-card"><div class="sum-label">إجمالي التكلفة</div><div class="sum-val" style="color:#A32D2D">${totalCost} ₪</div></div>
+      <div class="sum-card"><div class="sum-label">إجمالي الربح</div><div class="sum-val" style="color:#854F0B">${totalRev - totalCost} ₪</div></div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>الاسم</th><th>الرقم</th><th>الملف</th><th>بداية</th><th>انتهاء</th><th>أيام التأخير</th><th>المبلغ</th><th>التكلفة</th><th>الربح</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="10" style="text-align:center;padding:20px">لا توجد بيانات</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="7">الإجمالي (${list.length} اشتراك)</td><td>${totalRev} ₪</td><td>${totalCost} ₪</td><td>${totalRev - totalCost} ₪</td></tr></tfoot>
+    </table>
+    <button class="no-print" onclick="window.print()" style="margin-top:20px;padding:10px 20px;background:#0F6E56;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">🖨️ طباعة / حفظ PDF</button>
+    <script>setTimeout(()=>window.print(),500)<\/script>
+    </body></html>`;
+
+  } else { // sales
+    let from = document.getElementById('srep-from').value;
+    let to = document.getElementById('srep-to').value;
+    let list = sales.filter(s => s.date >= from && s.date <= to);
+    let totalRev = list.reduce((a, s) => a + s.price, 0);
+    let totalCost = list.reduce((a, s) => a + s.cost, 0);
+
+    let rows = list.slice().reverse().map((s, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${s.name}</td>
+        <td>${s.number}</td>
+        <td>${fmtDate(s.date)}</td>
+        <td>${s.time || '-'}</td>
+        <td>${s.type === 'renew' ? 'تجديد' + (s.months ? ' ' + s.months + ' شهر' : '') : 'جديد'}</td>
+        <td>${s.price} ₪</td>
+        <td>${s.cost} ₪</td>
+        <td>${s.price - s.cost} ₪</td>
+      </tr>`).join('');
+
+    html = `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">
+    <title>تقرير المبيعات</title>
+    <style>
+      body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;margin:24px;color:#1a1a1a;font-size:13px}
+      h1{font-size:20px;font-weight:700;color:#0F6E56;margin-bottom:4px}
+      .sub{color:#6b7280;font-size:12px;margin-bottom:20px}
+      table{width:100%;border-collapse:collapse}
+      th{background:#0F6E56;color:#fff;padding:9px 10px;text-align:right;font-size:12px}
+      td{padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right}
+      tr:nth-child(even) td{background:#f0fdf8}
+      tfoot td{background:#e1f5ee;font-weight:700;border-top:2px solid #0F6E56}
+      .summary{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+      .sum-card{background:#f0fdf8;border:1px solid #9FE1CB;border-radius:8px;padding:12px 16px;min-width:140px}
+      .sum-label{font-size:11px;color:#6b7280}
+      .sum-val{font-size:18px;font-weight:700;color:#0F6E56}
+      @media print{body{margin:10px}.no-print{display:none}}
+    </style></head><body>
+    <h1>🌐 جولان قلنديا - تقرير المبيعات</h1>
+    <div class="sub">من: ${fmtDate(from)} | إلى: ${fmtDate(to)} | تاريخ التقرير: ${fmtDate(today())}</div>
+    <div class="summary">
+      <div class="sum-card"><div class="sum-label">عدد العمليات</div><div class="sum-val">${list.length}</div></div>
+      <div class="sum-card"><div class="sum-label">إجمالي المبيعات</div><div class="sum-val">${totalRev} ₪</div></div>
+      <div class="sum-card"><div class="sum-label">إجمالي التكلفة</div><div class="sum-val" style="color:#A32D2D">${totalCost} ₪</div></div>
+      <div class="sum-card"><div class="sum-label">صافي الربح</div><div class="sum-val" style="color:#854F0B">${totalRev - totalCost} ₪</div></div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>الاسم</th><th>الرقم</th><th>التاريخ</th><th>الوقت</th><th>النوع</th><th>المبلغ</th><th>التكلفة</th><th>الربح</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="9" style="text-align:center;padding:20px">لا توجد بيانات</td></tr>'}</tbody>
+      <tfoot><tr><td colspan="6">الإجمالي</td><td>${totalRev} ₪</td><td>${totalCost} ₪</td><td>${totalRev - totalCost} ₪</td></tr></tfoot>
+    </table>
+    <button class="no-print" onclick="window.print()" style="margin-top:20px;padding:10px 20px;background:#0F6E56;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">🖨️ طباعة / حفظ PDF</button>
+    <script>setTimeout(()=>window.print(),500)<\/script>
+    </body></html>`;
+  }
+
+  printWin.document.write(html);
+  printWin.document.close();
+  closeModal('report-modal');
+  closeModal('sales-report-modal');
+}
+
+// ==============================
+// MODAL UTILS
+// ==============================
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+});
+
+// ==============================
+// INIT
+// ==============================
+renderDashboard();
+renderSubs();
+// Show restore button if snapshot exists
+if (localStorage.getItem('golan_snapshot')) {
+  lastDeletedSnapshot = JSON.parse(localStorage.getItem('golan_snapshot'));
+  let btn = document.getElementById('restore-btn');
+  if (btn) btn.style.display = '';
+}
+</script>
+</body>
+</html>
